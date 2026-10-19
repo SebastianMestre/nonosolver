@@ -91,3 +91,69 @@ body {
   background: #fff3bf;
   outline: 1px solid #e0c040;
 }
+
+#clue-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: flex-start;
+  padding: 8px 12px;
+  background: #f7f6f2;
+  border-bottom: 1px solid #ccc;
+}
+
+#clue-form .sizes {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+#clue-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#clue-form input,
+#clue-form textarea,
+#clue-form button {
+  font: inherit;
+}
+
+#clue-form input {
+  width: 5em;
+  padding: 4px 6px;
+  border: 1px solid #b5b5b5;
+  border-radius: 3px;
+}
+
+#clue-form textarea {
+  width: 14em;
+  height: 8em;
+  padding: 4px 6px;
+  border: 1px solid #b5b5b5;
+  border-radius: 3px;
+  font-family: ui-monospace, monospace;
+  resize: vertical;
+}
+
+#clue-form button {
+  padding: 4px 10px;
+  background: #fff;
+  border: 1px solid #b5b5b5;
+  border-radius: 3px;
+}
+
+#form-hint,
+#form-error {
+  flex: 1 1 16em;
+  align-self: center;
+}
+
+#form-hint {
+  color: #666;
+}
+
+#form-error {
+  color: #8a1f1f;
+}
