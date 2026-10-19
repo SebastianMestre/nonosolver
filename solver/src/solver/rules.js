@@ -56,6 +56,8 @@ function emptyRuns(cells) {
 
 /* */
 function isBroken(line) { // recursive
+  const started = performance.now();
+
   const cells = line.cells();
   const clues = line.clues();
 
@@ -109,7 +111,12 @@ function isBroken(line) { // recursive
     return result;
   }
 
-  return !ok(0, 0);
+  const broken = !ok(0, 0);
+  const elapsed = performance.now() - started;
+  if (elapsed > 30) {
+    console.warn(`isBroken ${line.axis} ${line.index} took ${elapsed.toFixed(1)}ms`, clues);
+  }
+  return broken;
 }
 /* */
 
