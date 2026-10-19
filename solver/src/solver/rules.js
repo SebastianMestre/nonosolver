@@ -56,7 +56,6 @@ function emptyRuns(cells) {
 
 /* */
 function isBroken(line) { // recursive
-
   const cells = line.cells();
   const clues = line.clues();
 
@@ -217,8 +216,8 @@ export const RULES = [
 
       for (let i = 0; i < n; i++) {
         for (let j = 0; j < m; j++) {
-          yield;
           if (grid[i][j] != UNKNOWN) continue;
+          yield;
 
           const hori = new LinearView(puzzle, grid, Axis.ROW, i);
           const vert = new LinearView(puzzle, grid, Axis.COL, j);

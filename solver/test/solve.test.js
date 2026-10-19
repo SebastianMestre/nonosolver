@@ -65,11 +65,11 @@ test("stepSolve applies a single pass", () => {
   assert.equal(calls, 2);
 });
 
-test("the contradiction rule pauses on every cell", () => {
+test("the contradiction rule pauses on unknown cells", () => {
   const rule = RULES.find((entry) => entry.id === "contradictions");
   const cells = [
-    [0, 0],
-    [0, 0],
+    [0, 1],
+    [1, 1],
   ];
   const iter = rule.apply({
     puzzle: { rows: [[1], [1]], cols: [[1], [1]] },
@@ -81,7 +81,7 @@ test("the contradiction rule pauses on every cell", () => {
     pauses += 1;
     step = iter.next();
   }
-  assert.equal(pauses, 4);
+  assert.equal(pauses, 1);
   assert.equal(typeof step.value, "boolean");
 });
 
