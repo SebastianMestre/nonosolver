@@ -1,5 +1,5 @@
 import { UNKNOWN, toggled } from "../solver/cells.js";
-import { RULES, solve } from "../solver/solve.js";
+import { RULES, activeRules, emptyGrid, stepSolve } from "../solver/solve.js";
 import { CELL, LABEL, cellAt, hitTest, layoutPuzzles } from "./layout.js";
 import { drawBoard } from "./view.js";
 
@@ -20,8 +20,9 @@ let entries = [];
 let grids = [];
 let layout = { items: [], contentWidth: 0, contentHeight: 0 };
 let drag = null;
-let solving = false;
-let solveAgain = false;
+let solveToken = 0;
+
+const SLICE_MS = 12;
 
 for (const rule of RULES) {
   const label = document.createElement("label");
@@ -59,31 +60,30 @@ function ruleOptions() {
 
 function runSolver() {
   if (!entries.length) return;
-  if (solving) {
-    solveAgain = true;
-    return;
-  }
-  solving = true;
-  solveAgain = false;
-  const options = ruleOptions();
-  const next = new Array(entries.length);
+  const token = ++solveToken;
+  const rules = activeRules(ruleOptions());
+  grids = entries.map((entry) => emptyGrid(entry.puzzle));
+  lodCache.clear();
+  draw();
   let index = 0;
+  const passes = new Array(entries.length).fill(0);
   const step = () => {
-    const end = Math.min(entries.length, index + 200);
-    for (; index < end; index += 1) next[index] = solve(entries[index].puzzle, options).grid;
-    if (index < entries.length) {
-      statusEl.textContent = `solving ${index} / ${entries.length}`;
-      requestAnimationFrame(step);
-      return;
+    if (token !== solveToken) return;
+    const start = performance.now();
+    while (index < entries.length) {
+      const result = stepSolve(entries[index].puzzle, grids[index], rules, passes[index]);
+      passes[index] = result.passes;
+      lodCache.delete(index);
+      if (result.done) index += 1;
+      if (performance.now() - start >= SLICE_MS) break;
     }
-    grids = next;
-    lodCache.clear();
-    solving = false;
-    statusEl.textContent = `${entries.length} puzzles`;
+    statusEl.textContent = index < entries.length
+      ? `solving ${index + 1} / ${entries.length}`
+      : `${entries.length} puzzles`;
     draw();
-    if (solveAgain) runSolver();
+    if (index < entries.length) requestAnimationFrame(step);
   };
-  statusEl.textContent = "solving…";
+  statusEl.textContent = "solving 0 / " + entries.length;
   requestAnimationFrame(step);
 }
 

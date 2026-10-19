@@ -15,17 +15,30 @@ export function activeRules(options = {}) {
   return (options.ruleList ?? RULES).filter((rule) => enabled[rule.id] !== false);
 }
 
+export function stepSolve(puzzle, grid, rules, passes) {
+  let changed = false;
+  for (const rule of rules) {
+    if (rule.apply({ puzzle, grid })) changed = true;
+  }
+  const nextPasses = passes + 1;
+  return {
+    passes: nextPasses,
+    done: !changed || nextPasses >= MAX_PASSES,
+    capped: changed && nextPasses >= MAX_PASSES,
+  };
+}
+
 export function runToConvergence(puzzle, grid, rules) {
   let passes = 0;
-  let changed = true;
-  while (changed && passes < MAX_PASSES) {
-    changed = false;
-    passes += 1;
-    for (const rule of rules) {
-      if (rule.apply({ puzzle, grid })) changed = true;
-    }
+  let capped = false;
+  let done = false;
+  while (!done) {
+    const result = stepSolve(puzzle, grid, rules, passes);
+    passes = result.passes;
+    capped = result.capped;
+    done = result.done;
   }
-  return { passes, capped: changed };
+  return { passes, capped };
 }
 
 export function solve(puzzle, options = {}) {
