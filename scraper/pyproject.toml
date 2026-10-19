@@ -1,0 +1,29 @@
+[project]
+name = "nonogram-scraper"
+version = "0.1.0"
+description = "Download black-and-white nonograms from nonograms.org"
+readme = "README.md"
+authors = [
+    { name = "Sebastian Mestre", email = "mestresebastianunr@gmail.com" }
+]
+requires-python = ">=3.15"
+dependencies = [
+    "beautifulsoup4>=4.15.0",
+    "httpx>=0.28.1",
+]
+
+[project.scripts]
+nonogram-scrape = "nonogram_scraper.cli:main"
+nonogram-join = "nonogram_scraper.join:main"
+
+[build-system]
+requires = ["uv_build>=0.11.24,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]

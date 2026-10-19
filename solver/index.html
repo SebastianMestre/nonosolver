@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>nonosolver</title>
+  <link rel="stylesheet" href="./src/pages/style.css">
+</head>
+<body>
+  <div id="toolbar">
+    <button type="button" id="fit">Fit</button>
+    <button type="button" id="zoom-out" aria-label="Zoom out">-</button>
+    <button type="button" id="zoom-in" aria-label="Zoom in">+</button>
+    <span id="zoom-label">100%</span>
+    <span id="rules"></span>
+    <button type="button" id="solve">Solve again</button>
+    <span id="hint">wheel zooms, drag empty space to pan, click a block to open it</span>
+    <span id="status"></span>
+  </div>
+  <div id="board"><canvas id="canvas"></canvas></div>
+  <script type="module" src="./src/pages/main.js"></script>
+</body>
+</html>
