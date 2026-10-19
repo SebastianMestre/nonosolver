@@ -1,5 +1,5 @@
 import { toggled } from "../solver/cells.js";
-import { RULES, activeRules, emptyGrid, runToConvergence } from "../solver/solve.js";
+import { RULES, activeRules, emptyGrid, finish, runToConvergence } from "../solver/solve.js";
 import { cellAt, measure } from "./layout.js";
 import { drawPuzzle } from "./view.js";
 
@@ -105,7 +105,7 @@ export function mountPlayer() {
     let index = list.findIndex((rule) => rule.id === nextRuleId);
     if (index < 0) index = 0;
     const rule = list[index];
-    const changed = rule.apply({ puzzle, grid });
+    const changed = finish(rule.apply({ puzzle, grid }));
     nextRuleId = list[(index + 1) % list.length].id;
     const following = list.find((entry) => entry.id === nextRuleId) ?? list[(index + 1) % list.length];
     note(changed ? `${rule.label} changed the grid. Next: ${following.label}` : `${rule.label} made no change. Next: ${following.label}`);

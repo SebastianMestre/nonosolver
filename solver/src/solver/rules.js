@@ -7,8 +7,9 @@
 // grid[row][col] is 0 (unknown), 1 (filled), or 2 (crossed).
 //
 // A rule may set cells to 1 or 2. Return true only when a cell changed.
-// The runner repeats every enabled rule until they all return false, or
-// until it hits the pass cap.
+// apply may be a generator: yield to pause, then return that boolean.
+// The runner resumes it, and repeats every enabled rule until they all
+// return false, or until it hits the pass cap.
 
 import { UNKNOWN, FILLED, CROSSED } from "./cells.js";
 import { filledRuns } from "./line.js";
@@ -208,7 +209,7 @@ export const RULES = [
   {
     id: "contradictions",
     label: "Contradiction finder",
-    apply({ puzzle, grid }) {
+    *apply({ puzzle, grid }) {
       const n = puzzle.rows.length;
       const m = puzzle.cols.length;
 
@@ -216,6 +217,7 @@ export const RULES = [
 
       for (let i = 0; i < n; i++) {
         for (let j = 0; j < m; j++) {
+          yield;
           if (grid[i][j] != UNKNOWN) continue;
 
           const hori = new LinearView(puzzle, grid, Axis.ROW, i);

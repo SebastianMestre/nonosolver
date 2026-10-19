@@ -1,5 +1,5 @@
 import { UNKNOWN, toggled } from "../solver/cells.js";
-import { RULES, activeRules, emptyGrid, stepSolve } from "../solver/solve.js";
+import { RULES, activeRules, emptyGrid, solveAll } from "../solver/solve.js";
 import { CELL, LABEL, cellAt, hitTest, layoutPuzzles } from "./layout.js";
 import { drawBoard } from "./view.js";
 
@@ -65,23 +65,23 @@ function runSolver() {
   grids = entries.map((entry) => emptyGrid(entry.puzzle));
   lodCache.clear();
   draw();
-  let index = 0;
-  const passes = new Array(entries.length).fill(0);
+  const cursor = { index: 0 };
+  const job = solveAll(entries.map((entry) => entry.puzzle), grids, rules, cursor);
   const step = () => {
     if (token !== solveToken) return;
     const start = performance.now();
-    while (index < entries.length) {
-      const result = stepSolve(entries[index].puzzle, grids[index], rules, passes[index]);
-      passes[index] = result.passes;
-      lodCache.delete(index);
-      if (result.done) index += 1;
-      if (performance.now() - start >= SLICE_MS) break;
+    const from = cursor.index;
+    let result = { done: false };
+    while (!result.done && performance.now() - start < SLICE_MS) {
+      result = job.next();
     }
-    statusEl.textContent = index < entries.length
-      ? `solving ${index + 1} / ${entries.length}`
-      : `${entries.length} puzzles`;
+    const last = Math.min(cursor.index, entries.length - 1);
+    for (let index = from; index <= last; index += 1) lodCache.delete(index);
+    statusEl.textContent = result.done
+      ? `${entries.length} puzzles`
+      : `solving ${cursor.index + 1} / ${entries.length}`;
     draw();
-    if (index < entries.length) requestAnimationFrame(step);
+    if (!result.done) requestAnimationFrame(step);
   };
   statusEl.textContent = "solving 0 / " + entries.length;
   requestAnimationFrame(step);

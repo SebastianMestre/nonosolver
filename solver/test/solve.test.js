@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { runToConvergence, solve, stepSolve } from "../src/solver/solve.js";
+import { RULES, finish, runToConvergence, solve, stepSolve } from "../src/solver/solve.js";
 
 const puzzle = { rows: [[1]], cols: [[1]] };
 
@@ -56,13 +56,33 @@ test("stepSolve applies a single pass", () => {
       return true;
     },
   }];
-  const first = stepSolve(puzzle, grid, rules, 0);
+  const first = finish(stepSolve(puzzle, grid, rules, 0));
   assert.equal(calls, 1);
   assert.deepEqual(grid, [[1]]);
   assert.equal(first.done, false);
-  const second = stepSolve(puzzle, grid, rules, first.passes);
+  const second = finish(stepSolve(puzzle, grid, rules, first.passes));
   assert.equal(second.done, true);
   assert.equal(calls, 2);
+});
+
+test("the contradiction rule pauses on every cell", () => {
+  const rule = RULES.find((entry) => entry.id === "contradictions");
+  const cells = [
+    [0, 0],
+    [0, 0],
+  ];
+  const iter = rule.apply({
+    puzzle: { rows: [[1], [1]], cols: [[1], [1]] },
+    grid: cells,
+  });
+  let pauses = 0;
+  let step = iter.next();
+  while (!step.done) {
+    pauses += 1;
+    step = iter.next();
+  }
+  assert.equal(pauses, 4);
+  assert.equal(typeof step.value, "boolean");
 });
 
 test("a rule can fill a cell and then stop", () => {
