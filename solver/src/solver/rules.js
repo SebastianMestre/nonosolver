@@ -79,9 +79,6 @@ function isBroken(line) { // recursive
   const memo = new Array((n+1)*(m+1)).fill(-1);
 
   function ok(i, j) {
-    // check if we can place the runs [j, m) in the cells [i, n)
-    
-    // trivial cases:
     if (j == m && i >= cleanCut) return true;  // no more runs, no more filled cells
     if (j == m && i <  cleanCut) return false; // no more runs, filled cells remain
     if (j <  m && i >= n)        return false; // runs remain, no more space
@@ -89,26 +86,13 @@ function isBroken(line) { // recursive
     const idx = i * (m+1) + j;
     if (memo[idx] != -1) return memo[idx];
 
-    // interesting case: runs remain, filled cells remain
-
     let result = false;
 
     const clue = clues[j];
     const cell = cells[i];
 
-    // there are two cases:
-  
-    // case 1: current cell is the start of a run
-    // only possible if the cells aren't crossed and the next cell is not filled
-
     let fitHere = true;
     if (dist[i] < clue) fitHere = false;
-//    for (let k = 0; k < clue; k++) {
-//      if (i + k >= n || cells[i + k] === CROSSED) {
-//        fitHere = false;
-//        break;
-//      }
-//    }
     if (i + clue < n && cells[i + clue] === FILLED) {
       fitHere = false;
     }
@@ -117,8 +101,6 @@ function isBroken(line) { // recursive
       result ||= ok(i + clue + 1, j + 1);
     }
 
-    // case 2: current cell does not belong to a run
-    // (only possible if current cell is not filled)
     if (cell !== FILLED) {
       result ||= ok(i + 1, j);
     }
@@ -133,6 +115,7 @@ function isBroken(line) { // recursive
 
 /*
 function isBroken(line) { // iterative
+// for some reason about 50% slower than recursive
 
   const cells = line.cells();
   const clues = line.clues();
@@ -223,8 +206,8 @@ const Axis = {
 
 export const RULES = [
   {
-    id: "overlap",
-    label: "Simple overlap",
+    id: "contradictions",
+    label: "Contradiction finder",
     apply({ puzzle, grid }) {
       const n = puzzle.rows.length;
       const m = puzzle.cols.length;
@@ -232,48 +215,27 @@ export const RULES = [
       let changed = false;
 
       for (let i = 0; i < n; i++) {
-        const view = new LinearView(puzzle, grid, Axis.ROW, i);
         for (let j = 0; j < m; j++) {
           if (grid[i][j] != UNKNOWN) continue;
 
-          view.setCell(j, FILLED);
-          if (isBroken(view)) {
-            view.setCell(j, CROSSED);
+          const hori = new LinearView(puzzle, grid, Axis.ROW, i);
+          const vert = new LinearView(puzzle, grid, Axis.COL, j);
+
+          grid[i][j] = FILLED;
+          if (isBroken(hori) || isBroken(vert)) {
+            grid[i][j] = CROSSED;
             changed = true;
             continue;
           }
 
-          view.setCell(j, CROSSED);
-          if (isBroken(view)) {
-            view.setCell(j, FILLED);
+          grid[i][j] = CROSSED;
+          if (isBroken(hori) || isBroken(vert)) {
+            grid[i][j] = FILLED;
             changed = true;
             continue;
           }
 
-          view.setCell(j, UNKNOWN);
-        }
-      }
-
-      for (let j = 0; j < m; j++) {
-        const view = new LinearView(puzzle, grid, Axis.COL, j);
-        for (let i = 0; i < n; i++) {
-          if (grid[i][j] != UNKNOWN) continue;
-          
-          view.setCell(i, FILLED);
-          if (isBroken(view)) {
-            view.setCell(i, CROSSED);
-            changed = true;
-            continue;
-          }
-
-          view.setCell(i, CROSSED);
-          if (isBroken(view)) {
-            view.setCell(i, FILLED);
-            changed = true;
-            continue;
-          }
-
-          view.setCell(i, UNKNOWN);
+          grid[i][j] = UNKNOWN;
         }
       }
 
