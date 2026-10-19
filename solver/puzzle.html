@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>nonosolver</title>
+  <link rel="stylesheet" href="./src/pages/style.css">
+</head>
+<body>
+  <div id="toolbar">
+    <a href="./index.html">All puzzles</a>
+    <span id="puzzle-id"></span>
+    <div id="rule-list"></div>
+    <button type="button" id="step">Step</button>
+    <button type="button" id="converge">To convergence</button>
+    <button type="button" id="clear">Clear</button>
+    <span id="hint">left click paints, right click crosses</span>
+    <span id="status"></span>
+  </div>
+  <div id="board"><canvas id="canvas"></canvas></div>
+  <script type="module" src="./src/pages/puzzle.js"></script>
+</body>
+</html>

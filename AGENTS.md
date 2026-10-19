@@ -4,7 +4,7 @@ Two programs share this repo.
 
 `scraper/` downloads black-and-white puzzles from https://www.nonograms.org/nonograms. It is a uv project on Python 3.15. Code is in `scraper/src/nonogram_scraper/`. Tests are in `scraper/test/`.
 
-`solver/` is a static page. The browser loads ES modules from `solver/index.html`. `solver/deploy/serve.sh` serves the repo with Python's `http.server`. The page reads `data/puzzles.json`.
+`solver/` is static pages. The browser loads ES modules from `solver/index.html` and `solver/puzzle.html`. `solver/deploy/serve.sh` serves the repo with Python's `http.server`. The overview reads `data/puzzles.json`. A single puzzle reads `data/puzzles/<id>.json`.
 
 `data/puzzles/` holds one JSON file per puzzle. `data/puzzles.json` is those files joined into one array.
 
@@ -67,4 +67,4 @@ Clues are black when the line is finished: every cell is filled or crossed, and 
 
 Zoomed out far enough that a cell would be under 8 pixels, each puzzle is a rectangle. Green means the puzzle is solved. White means nothing is marked. Other states are gray, darker as more cells are filled or crossed. Zooming back in draws the same cells again. Clicking a rectangle frames that puzzle.
 
-The checkboxes are the entries in `RULES`. Solve again runs the solver from a blank grid.
+The checkboxes are the entries in `RULES`. Solve again runs the solver from a blank grid. Clicking a puzzle title opens `puzzle.html?id=<id>`, which draws that same widget for one puzzle and starts from a blank grid. Step applies the highlighted rule, then moves the highlight to the next enabled rule, looping back to the first. To convergence runs the enabled rules until a full pass changes nothing. Clear restores the blank grid. Unchecking a rule skips it and leaves the cells as they are.

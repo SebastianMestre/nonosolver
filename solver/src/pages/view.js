@@ -66,7 +66,7 @@ function drawBlock(ctx, item, puzzle, grid, lodCache, scale) {
   ctx.strokeRect(item.x, item.y, item.width, item.height);
 }
 
-function drawPuzzle(ctx, item, puzzle, grid) {
+export function drawPuzzle(ctx, item, puzzle, grid) {
   const top = item.y + LABEL;
   const { rowHeader, colHeader, gridW, gridH } = item;
   const tableW = item.width;

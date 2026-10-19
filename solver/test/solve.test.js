@@ -1,12 +1,26 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { solve } from "../src/solver/solve.js";
+import { runToConvergence, solve } from "../src/solver/solve.js";
 
 const puzzle = { rows: [[1]], cols: [[1]] };
 
-test("the stub rules leave the grid unknown", () => {
-  const result = solve(puzzle);
+test("no rules leave the grid unknown", () => {
+  const result = solve(puzzle, { ruleList: [] });
   assert.deepEqual(result.grid, [[0]]);
+  assert.equal(result.capped, false);
+});
+
+test("runToConvergence edits the grid it is given", () => {
+  const grid = [[0]];
+  const result = runToConvergence(puzzle, grid, [{
+    id: "fill",
+    apply({ grid: cells }) {
+      if (cells[0][0] === 1) return false;
+      cells[0][0] = 1;
+      return true;
+    },
+  }]);
+  assert.deepEqual(grid, [[1]]);
   assert.equal(result.capped, false);
 });
 

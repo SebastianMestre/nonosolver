@@ -1,6 +1,6 @@
-import { CROSSED, FILLED, UNKNOWN } from "../solver/cells.js";
+import { UNKNOWN, toggled } from "../solver/cells.js";
 import { RULES, solve } from "../solver/solve.js";
-import { CELL, cellAt, hitTest, layoutPuzzles } from "./layout.js";
+import { CELL, LABEL, cellAt, hitTest, layoutPuzzles } from "./layout.js";
 import { drawBoard } from "./view.js";
 
 const MIN_SCALE = 0.00005;
@@ -200,12 +200,21 @@ function onPointerDown(event) {
   const item = hitTest(layout.items, world.x, world.y);
   const cell = item && detailed() ? cellAt(item, world.x, world.y) : null;
   if ((event.button === 0 && cell) || (event.button === 2 && cell)) {
-    const current = grids[item.index][cell.row][cell.column];
-    const target = event.button === 2
-      ? (current === CROSSED ? UNKNOWN : CROSSED)
-      : (current === FILLED ? UNKNOWN : FILLED);
+    const target = toggled(grids[item.index][cell.row][cell.column], event.button);
     drag = { type: "paint", item, target, last: `${cell.row},${cell.column}` };
     setCell(item.index, cell, target);
+    return;
+  }
+  if (event.button === 0 && item && detailed() && onTitle(item, world)) {
+    drag = {
+      type: "pan",
+      sx: event.clientX,
+      sy: event.clientY,
+      ox: camera.ox,
+      oy: camera.oy,
+      moved: false,
+      titleId: item.id,
+    };
     return;
   }
   if (event.button === 2) return;
@@ -246,8 +255,16 @@ function onPointerMove(event) {
   setCell(drag.item.index, cell, drag.target);
 }
 
+function onTitle(item, world) {
+  return world.x >= item.x && world.x < item.x + item.width && world.y >= item.y && world.y < item.y + LABEL;
+}
+
 function onPointerUp() {
-  if (drag && drag.type === "pan" && drag.lod && !drag.moved) frame(drag.lod);
+  if (drag && drag.type === "pan" && !drag.moved && drag.titleId) {
+    window.location.href = `puzzle.html?id=${encodeURIComponent(drag.titleId)}`;
+  } else if (drag && drag.type === "pan" && drag.lod && !drag.moved) {
+    frame(drag.lod);
+  }
   drag = null;
 }
 
