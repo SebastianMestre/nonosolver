@@ -15,6 +15,10 @@ Two programs share this repo.
 The scraper and the page are part of this repo.
 Solving rules live in `solver/src/solver/rules.js`. Sebastian writes those. Leave the rule bodies alone unless he asks for a change.
 
+## Commits
+
+A commit is one cohesive change. Do not bundle scattered edits into it.
+
 ## Puzzle JSON
 
 ```json
@@ -39,7 +43,7 @@ uv run nonogram-join
 uv run pytest
 ```
 
-`nonogram-scrape` writes `data/puzzles/<id>.json` and `data/puzzles/manifest.json`. The default gap between requests is one second, plus up to 0.3 seconds of jitter. A file that is already there is skipped. `--id 83774` fetches that puzzle and skips the catalog. `--refresh` downloads it again.
+`nonogram-scrape` writes `data/puzzles/<id>.json` and `data/puzzles/manifest.json`. The default gap between requests is one second, plus up to 0.3 seconds of jitter. A file that is already there is skipped. A restarted run continues at the next catalog page it finished. `--id 83774` fetches that puzzle and skips the catalog. `--refresh` downloads it again.
 
 `nonogram-join` writes `data/puzzles.json`.
 

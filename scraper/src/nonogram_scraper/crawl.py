@@ -7,7 +7,14 @@ from pathlib import Path
 
 from nonogram_scraper.client import PoliteClient
 from nonogram_scraper.parse import parse_catalog, parse_puzzle
-from nonogram_scraper.store import puzzle_path, write_manifest, write_puzzle
+from nonogram_scraper.store import (
+    puzzle_path,
+    read_manifest_ids,
+    read_next_page,
+    write_manifest,
+    write_next_page,
+    write_puzzle,
+)
 from nonogram_scraper.urls import catalog_url, puzzle_url
 
 # A parser bug would otherwise walk the whole catalog, one miss at a time.
@@ -23,7 +30,7 @@ def crawl(
     out: Path,
     *,
     ids: list[str] | None = None,
-    start_page: int = 1,
+    start_page: int | None = None,
     end_page: int | None = None,
     limit: int | None = None,
     refresh: bool = False,
@@ -32,6 +39,10 @@ def crawl(
 
     ``limit`` counts newly saved files. Already-present files are kept
     in the manifest and do not count toward the limit.
+
+    With no ``start_page`` and no ``ids``, the catalog continues at the
+    next page recorded in the output directory. A page is recorded only
+    after every puzzle on it has been saved or skipped.
     """
     out.mkdir(parents=True, exist_ok=True)
     saved: list[str] = []
@@ -78,16 +89,16 @@ def crawl(
                     break
             return saved
 
-        page = start_page
+        page = _first_page(out, start_page=start_page, refresh=refresh)
+        if page > 1:
+            print(f"resume at catalog page {page}", file=sys.stderr)
         html = client.get(catalog_url(page))
         page_ids, last_page = parse_catalog(html)
         last = end_page if end_page is not None else (last_page if last_page is not None else page)
         print(f"catalog page {page}, {len(page_ids)} puzzles, last page {last}", file=sys.stderr)
-        stop = False
-        for puzzle_id in page_ids:
-            if take(puzzle_id):
-                stop = True
-                break
+        stop = _take_page(page_ids)
+        if not stop:
+            write_next_page(out, page + 1)
         page += 1
         while not stop and page <= last:
             html = client.get(catalog_url(page))
@@ -96,14 +107,39 @@ def crawl(
                 print(f"catalog page {page} is empty, stopping", file=sys.stderr)
                 break
             print(f"catalog page {page}, {len(page_ids)} puzzles", file=sys.stderr)
-            for puzzle_id in page_ids:
-                if take(puzzle_id):
-                    stop = True
-                    break
+            stop = _take_page(page_ids)
+            if stop:
+                break
+            write_next_page(out, page + 1)
             page += 1
         return saved
+
+    def _take_page(page_ids: list[str]) -> bool:
+        for puzzle_id in page_ids:
+            if take(puzzle_id):
+                return True
+        return False
 
     try:
         return walk()
     finally:
-        write_manifest(out, saved)
+        write_manifest(out, _merged_ids(out, saved))
+
+
+def _first_page(out: Path, *, start_page: int | None, refresh: bool) -> int:
+    if start_page is not None:
+        return start_page
+    if refresh:
+        return 1
+    return read_next_page(out)
+
+
+def _merged_ids(out: Path, saved: list[str]) -> list[str]:
+    merged: list[str] = []
+    seen: set[str] = set()
+    for puzzle_id in [*(read_manifest_ids(out) or []), *saved]:
+        if puzzle_id in seen:
+            continue
+        seen.add(puzzle_id)
+        merged.append(puzzle_id)
+    return merged

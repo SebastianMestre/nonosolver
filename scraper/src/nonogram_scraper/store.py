@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 MANIFEST_NAME = "manifest.json"
+PROGRESS_NAME = "progress.json"
 SOURCE = "https://www.nonograms.org/nonograms"
 
 
@@ -37,6 +38,26 @@ def write_puzzle(directory: Path, puzzle_id: str, document: dict) -> Path:
 def write_manifest(directory: Path, ids: list[str]) -> Path:
     path = directory / MANIFEST_NAME
     write_json(path, {"source": SOURCE, "count": len(ids), "ids": ids}, pretty=True)
+    return path
+
+
+def read_next_page(directory: Path) -> int:
+    path = directory / PROGRESS_NAME
+    if not path.is_file():
+        return 1
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return 1
+    page = document.get("next_page") if isinstance(document, dict) else None
+    if isinstance(page, int) and page >= 1:
+        return page
+    return 1
+
+
+def write_next_page(directory: Path, page: int) -> Path:
+    path = directory / PROGRESS_NAME
+    write_json(path, {"next_page": page}, pretty=True)
     return path
 
 

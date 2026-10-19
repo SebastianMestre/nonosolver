@@ -4,6 +4,7 @@ import pytest
 
 from nonogram_scraper.crawl import CrawlError, crawl
 from nonogram_scraper.join import bundle
+from nonogram_scraper.store import read_next_page
 from nonogram_scraper.urls import puzzle_url
 
 PUZZLE_HTML = """
@@ -65,6 +66,47 @@ def test_crawl_stops_at_limit_and_skips_existing(tmp_path):
     }
     bundled = bundle(tmp_path)
     assert [item["url"] for item in bundled] == [puzzle_url("5"), puzzle_url("4")]
+
+
+PAGE_2 = """
+<table class="nonogram_list">
+  <tr><td><a href="https://www.nonograms.org/nonograms/i/3">#3</a></td></tr>
+</table>
+<a href="https://www.nonograms.org/nonograms/p/2">2</a>
+"""
+
+
+class PagedClient:
+    def __init__(self):
+        self.urls = []
+
+    def get(self, url):
+        self.urls.append(url)
+        if url.endswith("/nonograms/p/2"):
+            return PAGE_2
+        if url.endswith("/nonograms") or "/nonograms/p/" in url:
+            return CATALOG
+        return PUZZLE_HTML
+
+
+def test_a_finished_page_is_skipped_on_the_next_run(tmp_path):
+    first = PagedClient()
+    crawl(first, tmp_path, end_page=1)
+    assert read_next_page(tmp_path) == 2
+    assert any(url.endswith("/nonograms") for url in first.urls)
+
+    second = PagedClient()
+    saved = crawl(second, tmp_path)
+    assert saved == ["3"]
+    assert read_next_page(tmp_path) == 3
+    assert not any(url.rstrip("/").endswith("/nonograms") for url in second.urls)
+    assert puzzle_url("5") not in second.urls
+    assert puzzle_url("3") in second.urls
+
+
+def test_stopping_mid_page_does_not_advance(tmp_path):
+    crawl(FakeClient(), tmp_path, limit=1)
+    assert read_next_page(tmp_path) == 1
 
 
 def test_stops_when_pages_keep_failing_to_parse(tmp_path):

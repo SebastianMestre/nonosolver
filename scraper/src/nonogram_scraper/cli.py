@@ -25,7 +25,12 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--jitter", type=float, default=0.3, help="extra random seconds, up to this")
     parser.add_argument("--timeout", type=float, default=30.0)
     parser.add_argument("--retries", type=int, default=6)
-    parser.add_argument("--start-page", type=int, default=1)
+    parser.add_argument(
+        "--start-page",
+        type=int,
+        default=None,
+        help="catalog page to start from; default continues after the last finished page",
+    )
     parser.add_argument(
         "--end-page",
         type=int,
@@ -52,7 +57,7 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
     if args.delay < 0 or args.jitter < 0:
         parser.error("--delay and --jitter must be >= 0")
-    if args.start_page < 1:
+    if args.start_page is not None and args.start_page < 1:
         parser.error("--start-page must be >= 1")
 
     try:
